@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Assessments</title>
+  <style>
+    .profile-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: #cccccc; /* light gray */
+      margin: 0 auto 20px auto;
+      border: 2px solid white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Head */
+    .profile-circle::before {
+      content: '';
+      position: absolute;
+      top: 22%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 30px;
+      background-color: #888;
+      border-radius: 50%;
+    }
+
+    /* Shoulders/Body */
+    .profile-circle::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -20%);
+      width: 50px;
+      height: 35px;
+      background-color: #888;
+      border-radius: 50% / 40%;
+    }
+
+    button:disabled {
+      background-color: #ccc !important;
+      color: #17007d !important;
+      cursor: not-allowed !important;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .user-info-box h2 {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #ffffff;
+        text-align: left;
+    }
+    .user-info-box {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        flex: 1;
+        max-width: 25%;
+        background: #003366; /* example dark background */
+        border-right: 1px solid #ccc;
+        padding: 20px;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+        color: white; /* 🔥 This affects all text inside */
+    }
+    .dashboard {
+      display: flex;
+      height: 100vh;
+      background: linear-gradient(to bottom, #ffffff, #e6f0ff);
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    .instructions {
+        font-size: 20px;
+        color: #555;
+        margin-bottom: 20px;
+        line-height: 1.5;
+        }
+    .user-info-box {
+      flex: 1;
+      max-width: 25%;
+      background: #17007d;
+      border-right: 1px solid #ccc;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    }
+    .dashboard-content {
+        flex: 3;
+        padding: 2rem;
+        overflow-y: auto;
+        display: none;
+        background: #ffffff; /* clean white background */
+        border-radius: 0 12px 12px 0; /* rounded right corners */
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05); /* soft inner shadow */
+        color: #333; /* darker text for better readability */
+        font-size: 16px;
+        }
+
+    .dashboard-content h2 {
+        margin-top: 0;
+        font-size: 28px;
+        color: #17007d; /* tie it in with your brand color */
+        margin-bottom: 20px;
+    }
+
+    .dashboard-content form {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .question {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #eef3ff;
+        border-left: 4px solid #17007d;
+        border-radius: 6px;
+    }
+
+    .question label {
+        display: block;
+        margin: 5px 0;
+        font-weight: 500;
+        color: #333;
+    }
+
+    input[type="radio"],
+    input[type="checkbox"] {
+        margin-right: 8px;
+    }
+    .question {
+      margin-bottom: 1.5rem;
+    }
+    .question label {
+      display: block;
+      margin: 5px 0;
+    }
+    button {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        background: #82bdfc; /* Or any background */
+        color: #17007d;          /* ✅ Font color */
+        font-family:  'Arial', sans-serif; /* ✅ Font style */
+        font-size: 16px;      /* ✅ Optional: Font size */
+        font-weight: 600;     /* ✅ Optional: Boldness */
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #00bfff;
+    }
+
+    button[type="submit"] {
+        background: #17007d;   /* new color */
+        color: #ffffff;        /* white text */
+        font-weight: 600;
+        border-radius: 6px;
+        margin-top: 15px;
+        transition: background 0.3s ease;
+    }
+
+    button[type="submit"]:hover {
+        background: #4733cc;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="account-panel" style="display: flex; flex-direction: column; width: 100vw; height: 100vh;">
+  <div id="loading-overlay" style="position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(255,255,255,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #17007d;">
+    🔄 Loading your dashboard...
+  </div>
+  <div id="info-warning" style="display: none; background: #fff3cd; color: #856404; padding: 15px; border: 1px solid #ffeeba; border-radius: 6px; margin-bottom: 20px;">
+    ⚠️ Please fill-up the user information.
+  </div>
+  <div class="dashboard">
+    <div class="user-info-box">
+        <div>
+            <h1 style="margin-top: 0;">CHAINSKWELA</h1>
+          <div class="profile-circle"></div>
+          <p><strong>Name:</strong> <span id="acc-name"></span></p>
+          <p><strong>Email:</strong> <span id="acc-email"></span></p>
+          <button id="btn-userinfo" onclick="toggleUserInfo()">User Information</button>
+          <button id="btn-pretest" onclick="toggleQuestionnaire()" disabled title="Please fill out user info first">Pre-Test</button>
+          <button id="btn-vark" onclick="toggleVark()" disabled title="Please fill out user info first">VARK Assessment</button>
+          <button id="btn-posttest" onclick="togglePostTest()" disabled title="Please fill out user info first">Post-Test</button>
+        </div>
+        <div>
+          <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+    <div class="dashboard-content" id="user-info-content">
+      <h2>User Profile</h2>
+      <p class="instructions">Please complete your profile information:</p>
+      <form id="user-info-form" style="max-width: 500px; margin: auto; background: #f4f8ff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+    
+        <label for="firstName" style="font-weight: 600; display: block; margin-bottom: 5px;">First Name:</label>
+        <input type="text" id="firstName" name="firstName" required style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px;">
+    
+        <label for="lastName" style="font-weight: 600; display: block; margin-bottom: 5px;">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" required style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px;">
+    
+        <label for="nickname" style="font-weight: 600; display: block; margin-bottom: 5px;">Nickname:</label>
+        <input type="text" id="nickname" name="nickname" required style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px;">
+        
+        <label style="font-weight: 600; display: block; margin-bottom: 10px;">Learning Preference:</label>
+        <div style="margin-bottom: 20px;">
+          <label style="margin-right: 15px;"><input type="radio" name="learningPreference" value="Individual" required> Individual Learning</label>
+          <label><input type="radio" name="learningPreference" value="Collaborative" required> Collaborative Learning</label>
+        </div>
+    
+        <button type="submit" style="width: 100%; padding: 12px; background-color: #17007d; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s ease;">Save Information</button>
+      </form>
+    </div>
+    <div class="dashboard-content" id="questionnaire-box">
+      <h2>Pre-Test Questionnaire</h2>
+      <p class="instructions">
+        Please answer each question by selecting the most appropriate option. This helps assess your current understanding before starting the course.
+      </p>
+      <form id="quiz-form"></form>
+    </div>
+    <div class="dashboard-content" id="vark-box">
+      <h2>VARK Assessment</h2>
+      <p class="instructions">
+        Please select the option(s) that best describe your preference for each situation. You may choose more than one answer per question if needed.
+      </p>
+      <form id="vark-form"></form>
+    </div>
+    <div class="dashboard-content" id="posttest-box">
+      <h2>Post-Test Questionnaire</h2>
+      <p class="instructions">
+        Please answer each question based on what you've learned. This will help us measure your progress after completing the course.
+      </p>
+      <form id="post-form"></form>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js">// Handle Pre-Test Submission
+  document.getElementById('user-info-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) {
+      alert("No user logged in.");
+      return;
+    }
+
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const nickname = document.getElementById('nickname').value;
+    const learningPreference = document.querySelector('input[name="learningPreference"]:checked').value;
+
+    try {
+      await db.collection('users').doc(user.uid).set({
+        firstName,
+        lastName,
+        nickname,
+        learningPreference,
+        email: user.email
+      }, { merge: true });
+
+      // Show styled confirmation
+      const confirmation = document.createElement('div');
+      confirmation.textContent = "✅ Information saved successfully!";
+      confirmation.style.background = "#d4edda";
+      confirmation.style.color = "#155724";
+      confirmation.style.padding = "10px";
+      confirmation.style.marginTop = "15px";
+      confirmation.style.border = "1px solid #c3e6cb";
+      confirmation.style.borderRadius = "6px";
+      confirmation.style.textAlign = "center";
+
+      const form = document.getElementById('user-info-form');
+      form.appendChild(confirmation);
+
+      setTimeout(() => {
+        confirmation.remove();
+      }, 4000);
+
+    } catch (error) {
+      console.error("Error saving user info:", error);
+      alert("Failed to save user information.");
+    }
+  });
+
+  document.getElementById("quiz-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    clearInlineWarnings("quiz-form");
+
+    const form = e.target;
+    const answers = {};
+    let hasEmpty = false;
+
+    // Count correct answers per group
+    let count_1 = 0; // Questions 1-5 (easy)
+    let count_3 = 0; // Questions 6-10 (intermediate)
+    let count_5 = 0; // Questions 11-15 (hard)
+
+    for (let i = 1; i <= 15; i++) {
+      const key = `q${i}`;
+      const selected = form.querySelector(`input[name="${key}"]:checked`);
+      const questionDiv = form.querySelector(`input[name="${key}"]`).closest('.question');
+
+      if (selected) {
+        answers[key] = selected.value === answerKey[key] ? 1 : 0;
+        // Count correct answers per group
+        if (answers[key] === 1) {
+          if (i >= 1 && i <= 5) count_1++;
+          else if (i >= 6 && i <= 10) count_3++;
+          else if (i >= 11 && i <= 15) count_5++;
+        }
+      } else {
+        hasEmpty = true;
+        showInlineWarning(questionDiv, "⚠️ Please select an answer.");
+      }
+    }
+
+    if (hasEmpty) {
+      alert("⚠️ You have unanswered Pre-Test questions.");
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        // Save raw answers to Firestore as before
+        await db.collection("responses").doc(user.uid).set({ answers }, { merge: true });
+
+        // Send counts to backend API for knowledge level computation and storage
+        await fetch("http://localhost:5000/predict_knowledge", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            user_id: user.uid,
+            count_1: count_1,
+            count_3: count_3,
+            count_5: count_5
+          })
+        })
+        .then(res => res.json())
+        .then(result => {
+          // Optionally show the result to the user
+          alert(`✅ Pre-Test submitted!\nKnowledge Level: ${result.knowledge_level}\nPoints: ${result.total_points}`);
+        })
+        .catch(err => {
+          console.error("Error calling backend:", err);
+          alert("❌ Failed to compute knowledge level.");
+        });
+
+        const pretestBtn = document.getElementById("btn-pretest");
+        pretestBtn.disabled = true;
+        pretestBtn.title = "Pre-Test already submitted";
+        pretestBtn.style.backgroundColor = "#ccc";
+        pretestBtn.style.cursor = "not-allowed";
+
+        // ✅ Enable Post-Test if both pre and vark are done
+        await checkAndEnablePostTest(user.uid);
+
+        if (confirm("✅ Pre-Test submitted! Proceed to VARK?")) toggleVark();
+      } catch (error) {
+        console.error(error);
+        alert("❌ Failed to save Pre-Test.");
+      }
+    }
+  });
+
+  // Handle Post-Test Submission
+  document.getElementById("post-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const answers = {};
+    let hasEmpty = false;
+
+    for (let i = 1; i <= 15; i++) {
+      const key = `q${i}`;
+      const input = e.target.querySelector(`input[name="${key}"]:checked`);
+      if (input) {
+        answers[key] = input.value;
+      } else {
+        hasEmpty = true;
+      }
+    }
+
+    if (hasEmpty) {
+      alert("⚠️ Please answer all Post-Test questions before submitting.");
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await db.collection("post_responses").doc(user.uid).set({ answers }, { merge: true });
+        if (confirm("✅ Post-Test submitted! Thank you for completing the assessment.")) {
+          toggleUserInfo();
+        }
+      } catch (error) {
+        alert("❌ Failed to save Post-Test. Please try again.");
+        console.error(error);
+      }
+    } else {
+      alert("User not logged in.");
+    }
+  });
+
+  // Handle VARK Submission
+  document.getElementById("vark-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    clearInlineWarnings("vark-form");
+
+    const form = e.target;
+    const answers = {};
+    let hasEmpty = false;
+
+    for (let i = 1; i <= 15; i++) {
+      const key = `v${i}`;
+      const checkboxes = form.querySelectorAll(`input[name="${key}"]:checked`);
+      const questionDiv = form.querySelector(`input[name="${key}"]`).closest('.question');
+
+      if (checkboxes.length > 0) {
+        answers[key] = Array.from(checkboxes).map(c => c.value);
+      } else {
+        hasEmpty = true;
+        showInlineWarning(questionDiv, "⚠️ Please select at least one option.");
+      }
+    }
+
+    if (hasEmpty) {
+      alert("⚠️ You have unanswered VARK questions.");
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await db.collection("vark_responses").doc(user.uid).set({ answers }, { merge: true });
+
+        // Count V, A, R, K
+        let countV = 0, countA = 0, countR = 0, countK = 0;
+        Object.values(answers).flat().forEach(letter => {
+          if (letter === "V") countV++;
+          if (letter === "A") countA++;
+          if (letter === "R") countR++;
+          if (letter === "K") countK++;
+        });
+
+        // Call both RF and BN APIs for prediction (do not show result to user)
+        try {
+          await fetch("http://localhost:5001/predict_vark", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: user.uid,
+              Count_V: countV,
+              Count_A: countA,
+              Count_R: countR,
+              Count_K: countK
+            })
+          });
+        } catch (err) {}
+        try {
+          await fetch("http://localhost:5002/predict_vark_bn", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: user.uid,
+              Count_V: countV,
+              Count_A: countA,
+              Count_R: countR,
+              Count_K: countK
+            })
+          });
+        } catch (err) {}
+
+        // Get user's name for the message
+        let username = "";
+        try {
+          const userDoc = await db.collection("users").doc(user.uid).get();
+          if (userDoc.exists) {
+            const data = userDoc.data();
+            username = data.nickname || `${data.firstName || ""} ${data.lastName || ""}`.trim();
+          }
+        } catch (e) {
+          username = "";
+        }
+
+        // Only show Good Job message (no prediction, no data)
+        alert(`Good Job${username ? ', ' + username : ''}!`);
+
+        // 🔒 Lock the form
+        lockForm("vark-form");
+
+        // 🔒 Disable and style the submit button
+        const submitBtn = document.querySelector('#vark-form button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Submitted";
+          submitBtn.style.backgroundColor = "#ccc";
+          submitBtn.style.cursor = "not-allowed";
+          submitBtn.style.color = "#666";
+        }
+
+        // 🔒 Disable VARK button
+        const varkBtn = document.getElementById("btn-vark");
+        varkBtn.disabled = true;
+        varkBtn.title = "VARK already submitted";
+        varkBtn.style.backgroundColor = "#ccc";
+        varkBtn.style.cursor = "not-allowed";
+
+        // ✅ Enable Post-Test if both pre and vark are done
+        await checkAndEnablePostTest(user.uid);
+
+        alert("✅ VARK Assessment submitted successfully!");
+      } catch (error) {
+        console.error(error);
+        alert("❌ Failed to save VARK.");
+      }
+    }
+  });
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyB_nQoD6KeFd8q-F_ZBNbo2LPyFHkyobQU",
+    authDomain: "chainskwela-collab.firebaseapp.com",
+    projectId: "chainskwela-collab",
+    storageBucket: "chainskwela-collab.firebasestorage.app",
+    messagingSenderId: "155198102208",
+    appId: "1:155198102208:web:f09e748acd7a46fad66b25",
+    measurementId: "G-XLM732ZZVN"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  function lockUserInfoForm() {
+  const form = document.getElementById('user-info-form');
+  const inputs = form.querySelectorAll('input, button[type="submit"]');
+  inputs.forEach(input => {
+    input.disabled = true;
+    input.style.cursor = 'not-allowed';
+    input.style.backgroundColor = '#e0e0e0';
+    input.style.color = '#999';
+  });
+
+  // Disable the "User Information" button
+  const userInfoBtn = document.getElementById('btn-userinfo');
+  userInfoBtn.disabled = true;
+  userInfoBtn.style.backgroundColor = '#ccc';
+  userInfoBtn.style.cursor = 'not-allowed';
+  }
+
+  auth.onAuthStateChanged(async user => {
+  if (user) {
+    try {
+      const preTestDoc = await db.collection("responses").doc(user.uid).get();
+      if (preTestDoc.exists && preTestDoc.data().answers) {
+        lockForm("quiz-form");
+
+        const pretestBtn = document.getElementById("btn-pretest");
+        pretestBtn.disabled = true;
+        pretestBtn.title = "Pre-Test already submitted";
+      }
+      const varkDoc = await db.collection("vark_responses").doc(user.uid).get();
+      if (varkDoc.exists && varkDoc.data().answers) {
+        lockForm("vark-form");
+
+        const varkBtn = document.getElementById("btn-vark");
+        varkBtn.disabled = true;
+        varkBtn.title = "VARK already submitted";
+      }
+
+      // ✅ Check if Post-Test has been answered
+      const postDoc = await db.collection("post_responses").doc(user.uid).get();
+      if (postDoc.exists && postDoc.data().answers) {
+        lockForm("post-form");
+
+        const postBtn = document.getElementById("btn-posttest");
+        postBtn.disabled = true;
+        postBtn.title = "Post-Test already submitted";
+      }
+
+      const docRef = db.collection('users').doc(user.uid);
+      const docSnap = await docRef.get();
+
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        document.getElementById('acc-email').textContent = data.email || user.email;
+
+        if (data.firstName && data.lastName && data.nickname && data.learningPreference) {
+          document.getElementById('acc-name').textContent = `${data.firstName} ${data.lastName}`;
+          lockUserInfoForm();
+
+          const pretestBtn = document.getElementById('btn-pretest');
+          const varkBtn = document.getElementById('btn-vark');
+          const posttestBtn = document.getElementById('btn-posttest');
+
+          let preAnswered = false;
+          let varkAnswered = false;
+
+          // Enable Pre-Test and VARK buttons immediately
+          pretestBtn.disabled = false;
+          varkBtn.disabled = false;
+
+          if (preTestDoc.exists && preTestDoc.data().answers) {
+            preAnswered = true;
+            lockForm("quiz-form");
+            pretestBtn.disabled = true;
+            pretestBtn.title = "Pre-Test already submitted";
+          }
+
+          if (varkDoc.exists && varkDoc.data().answers) {
+            varkAnswered = true;
+            lockForm("vark-form");
+            varkBtn.disabled = true;
+            varkBtn.title = "VARK already submitted";
+          }
+
+          if (postDoc.exists && postDoc.data().answers) {
+            lockForm("post-form");
+            posttestBtn.disabled = true;
+            posttestBtn.title = "Post-Test already submitted";
+          } else {
+            // Only enable Post-Test if User Info + Pre-Test + VARK are all done
+            posttestBtn.disabled = !(preAnswered && varkAnswered);
+          }
+
+        } else {
+          document.getElementById('acc-name').textContent = "";
+          document.getElementById('info-warning').style.display = "block"; // Show warning
+        }
+      } else {
+        document.getElementById('acc-email').innerText = user.email;
+        document.getElementById('info-warning').style.display = "block";
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      document.getElementById('acc-email').innerText = user.email;
+    }
+  // ✅ Enable allowed buttons after data is fully loaded
+    const btnUserInfo = document.getElementById("btn-userinfo");
+    if (btnUserInfo && !btnUserInfo.disabled) {
+      btnUserInfo.disabled = false;
+      btnUserInfo.style.cursor = "pointer";
+      btnUserInfo.style.opacity = 1;
+    }
+
+    // ✅ Hide the loading screen
+    const overlay = document.getElementById("loading-overlay");
+    if (overlay) overlay.style.display = "none";
+
+  } else {
+    window.location.href = 'index.html';
+  }
+});
+
+  function logout() {
+    auth.signOut().then(() => {
+      window.location.href = 'index.html';
+    });
+  }
+    function lockForm(formId) {
+    const form = document.getElementById(formId);
+
+    // Disable all input fields
+    const inputs = form.querySelectorAll("input");
+    inputs.forEach(input => {
+        input.disabled = true;
+    });
+
+    // Disable and restyle the submit button
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Already Submitted";
+        submitBtn.style.background = "#ccc";
+        submitBtn.style.cursor = "not-allowed";
+    }
+
+    // Optional: Show a message
+    const notice = document.createElement("p");
+    notice.textContent = "You have already submitted this assessment.";
+    notice.style.color = "#888";
+    notice.style.fontStyle = "italic";
+    notice.style.marginBottom = "15px";
+    form.insertBefore(notice, form.firstChild);
+}
+  function toggleUserInfo() {
+    document.getElementById('user-info-content').style.display = 'block';
+    document.getElementById('questionnaire-box').style.display = 'none';
+    document.getElementById('vark-box').style.display = 'none';
+    document.getElementById('posttest-box').style.display = 'none';
+  }
+
+  function toggleQuestionnaire() {
+    document.getElementById('questionnaire-box').style.display = 'block';
+    document.getElementById('user-info-content').style.display = 'none';
+    document.getElementById('vark-box').style.display = 'none';
+    document.getElementById('posttest-box').style.display = 'none';
+  }
+  function toggleVark() {
+    document.getElementById('vark-box').style.display = 'block';
+    document.getElementById('user-info-content').style.display = 'none';
+    document.getElementById('questionnaire-box').style.display = 'none';
+    document.getElementById('posttest-box').style.display = 'none';
+  }
+  function togglePostTest() {
+    document.getElementById('posttest-box').style.display = 'block';
+    document.getElementById('user-info-content').style.display = 'none';
+    document.getElementById('questionnaire-box').style.display = 'none';
+    document.getElementById('vark-box').style.display = 'none';
+  }
+
+  function buildRadioForm(formId, questions, prefix) {
+    const form = document.getElementById(formId);
+    form.innerHTML = questions.map((q, i) => `
+        <div class="question">
+        ${i + 1}. ${q.q}<br>
+        ${q.options.map((opt, j) => `
+            <label>
+            <input type="${prefix === 'v' ? 'checkbox' : 'radio'}"
+                    name="${prefix + (i + 1)}"
+                    value="${opt.value}">
+            ${opt.label}
+            </label>
+        `).join('')}
+        </div>
+    `).join('') + '<button type="submit">Submit</button>';
+    }
+
+
+  const prePostQuestions = [
+  {
+    q: "What is the primary function of blockchain?",
+    options: ["To store personal data", "To record and verify transactions in a decentralized network", "To replace traditional banking entirely", "To create digital art"]
+  },
+  {
+    q: "The first blockchain-based cryptocurrency is?",
+    options: ["Bitcoin", "NFT", "E-Coin", "Crypto"]
+  },
+  {
+    q: "Blockchain eliminates the need for:",
+    options: ["Cryptography", "Decentralization", "Intermediaries", "Digital Signatures"]
+  },
+  {
+    q: "Which of the following is a key advantage of blockchain?",
+    options: ["Centralized control", "Ability to edit past transactions", "Reliability and Immutability", "Requires third-party approval for transactions"]
+  },
+  {
+    q: "What does decentralization in blockchain mean?",
+    options: ["A single authority controls all transactions", "Power is distributed among multiple participants", "Data is stored in one central server", "Blockchain operates only within governments"]
+  },
+  {
+    q: "Which of these consensus mechanisms requires miners to solve complex mathematical problems?",
+    options: [" Proof of Authority (PoA)", "Proof of Work (PoW)", "Proof of Stake (PoS)", "Delegated Proof of Stake (dPoS)"]
+  },
+  {
+    q: "How does blockchain ensure data security?",
+    options: ["By allowing data modifications at any time", "Through cryptographic hashing and decentralized storage", "By requiring government regulation", "By making all transactions private and hidden"]
+  },
+  {
+    q: "What is the key difference between public and private blockchains?",
+    options: ["Private blockchains require permission to access, while public blockchains do not", "Public blockchains store data secretly, private blockchains do not", "Private blockchains use cryptocurrencies while public ones do not", "There is no difference between them"]
+  },
+  {
+    q: "The transparency feature in blockchain means that:",
+    options: ["All transactions are accessible to some network participants", "Transactions can be edited freely by anyone", "Can ask administrators to access transaction data", "Transaction history is openly accessible to network participants"]
+  },
+  {
+    q: "In supply chain management, how does blockchain help?",
+    options: ["By allowing companies to hide transaction records", " By enabling secure tracking of product origins and movement", " By increasing product prices", "By removing the need for manufacturers"]
+  },
+  {
+    q: "What is interoperability in blockchain?",
+    options: ["The ability of blockchains to interact and share data with each other", "The ability to mine different cryptocurrencies on the same blockchain", "The use of blockchain for medical research", "The process of verifying digital signatures"]
+  },
+  {
+    q: "Which blockchain model combines aspects of both public and private blockchains?",
+    options: ["Consortium blockchain", "Hybrid blockchain", "Mixed blockchain", "Distributed ledger blockchain"]
+  },
+  {
+    q: "What is the main purpose of a smart contract?",
+    options: ["To create new cryptocurrencies", "To execute agreements automatically without intermediaries", "To make blockchain transactions faster", "To replace legal systems entirely"]
+  },
+  {
+    q: "Environmental concern is mostly associated with blockchain technology?",
+    options: ["High water consumption", "Excessive energy usage due to mining", "Lack of regulation in cryptocurrency trading", "Decreased efficiency in financial transactions"]
+  },
+  {
+    q: "What is the purpose of a consensus algorithm in blockchain?",
+    options: ["To create a data backup", "To ensure that participants agree on the state of the distributed ledger", "To delete old transactions", "To create new blocks randomly"]
+  }
+].map(q => ({ q: q.q, options: q.options.map(opt => ({ value: opt, label: opt })) }));
+
+  const varkQuestions = [
+    "draw a map", "tell them the directions", "write down the directions", "go with them",
+    "see the word in your mind", "sound it out", "look it up", "write both versions",
+    "look at diagrams", "listen to a lecture", "read about it", "do a practical task",
+    "diagrams", "verbal instruction", "manual", "trial and error",
+    "see photos", "ask someone", "read descriptions", "try something new",
+    "how they look", "how they sound", "their name", "your shared experience",
+    "see a map", "hear directions", "read signs", "remember walking it",
+    "visualize the outcome", "talk about it", "write goals", "start doing something",
+    "looking at charts", "asking someone", "re-reading", "doing it hands-on",
+    "watch a video", "ask for advice", "read specs", "test it in-store",
+    "see it in your head", "say it out loud", "write it down", "act it out",
+    "watching scenery", "listening to music", "reading", "walking or moving",
+    "drawing", "talking", "writing", "demonstrating",
+    "watching", "listening to tips", "reading rules", "playing it",
+    "watch tutorials", "listen to explanations", "read a guide", "try it yourself"
+  ];
+
+  const varkFormData = [
+  {
+    q: "You are helping someone get to a location. You would:",
+    options: [
+      { value: "V", label: "draw a map" },
+      { value: "A", label: "tell them the directions" },
+      { value: "R", label: "write down the directions" },
+      { value: "K", label: "go with them" }
+    ]
+  },
+  {
+    q: "You are unsure how to spell a word. You would:",
+    options: [
+      { value: "V", label: "see the word in your mind" },
+      { value: "A", label: "sound it out" },
+      { value: "R", label: "look it up" },
+      { value: "K", label: "write both versions" }
+    ]
+  },
+  {
+    q: "You want to learn about a new topic. You prefer to:",
+    options: [
+      { value: "V", label: "look at diagrams" },
+      { value: "A", label: "listen to a lecture" },
+      { value: "R", label: "read about it" },
+      { value: "K", label: "do a practical task" }
+    ]
+  },
+  {
+    q: "When assembling flat-pack furniture, you prefer:",
+    options: [
+      { value: "V", label: "diagrams" },
+      { value: "A", label: "verbal instruction" },
+      { value: "R", label: "manual" },
+      { value: "K", label: "trial and error" }
+    ]
+  },
+  {
+    q: "You’re choosing food at a restaurant. You’d prefer:",
+    options: [
+      { value: "V", label: "see photos" },
+      { value: "A", label: "ask someone" },
+      { value: "R", label: "read descriptions" },
+      { value: "K", label: "try something new" }
+    ]
+  },
+  {
+    q: "You remember a person best by:",
+    options: [
+      { value: "V", label: "how they look" },
+      { value: "A", label: "how they sound" },
+      { value: "R", label: "their name" },
+      { value: "K", label: "your shared experience" }
+    ]
+  },
+  {
+    q: "When trying to recall a route, you:",
+    options: [
+      { value: "V", label: "see a map" },
+      { value: "A", label: "hear directions" },
+      { value: "R", label: "read signs" },
+      { value: "K", label: "remember walking it" }
+    ]
+  },
+  {
+    q: "To get motivated for a project, you:",
+    options: [
+      { value: "V", label: "visualize the outcome" },
+      { value: "A", label: "talk about it" },
+      { value: "R", label: "write goals" },
+      { value: "K", label: "start doing something" }
+    ]
+  },
+  {
+    q: "If confused, you learn best by:",
+    options: [
+      { value: "V", label: "looking at charts" },
+      { value: "A", label: "asking someone" },
+      { value: "R", label: "re-reading" },
+      { value: "K", label: "doing it hands-on" }
+    ]
+  },
+  {
+    q: "When buying a new phone, you:",
+    options: [
+      { value: "V", label: "watch a video" },
+      { value: "A", label: "ask for advice" },
+      { value: "R", label: "read specs" },
+      { value: "K", label: "test it in-store" }
+    ]
+  },
+  {
+    q: "To remember a list, you:",
+    options: [
+      { value: "V", label: "see it in your head" },
+      { value: "A", label: "say it out loud" },
+      { value: "R", label: "write it down" },
+      { value: "K", label: "act it out" }
+    ]
+  },
+  {
+    q: "You relax by:",
+    options: [
+      { value: "V", label: "watching scenery" },
+      { value: "A", label: "listening to music" },
+      { value: "R", label: "reading" },
+      { value: "K", label: "walking or moving" }
+    ]
+  },
+  {
+    q: "You express ideas by:",
+    options: [
+      { value: "V", label: "drawing" },
+      { value: "A", label: "talking" },
+      { value: "R", label: "writing" },
+      { value: "K", label: "demonstrating" }
+    ]
+  },
+  {
+    q: "When learning a sport, you prefer:",
+    options: [
+      { value: "V", label: "watching" },
+      { value: "A", label: "listening to tips" },
+      { value: "R", label: "reading rules" },
+      { value: "K", label: "playing it" }
+    ]
+  },
+  {
+    q: "Learning tech skills, you prefer:",
+    options: [
+      { value: "V", label: "watch tutorials" },
+      { value: "A", label: "listen to explanations" },
+      { value: "R", label: "read a guide" },
+      { value: "K", label: "try it yourself" }
+    ]
+  }
+];
+
+  buildRadioForm("quiz-form", prePostQuestions, "q");
+  buildRadioForm("post-form", prePostQuestions, "q");
+  buildRadioForm("vark-form", varkFormData, "v");
+
+  function logout() {
+  auth.signOut().then(() => {
+    // Clear login fields
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-password').value = '';
+
+    // Reset login button state
+    const loginBtn = document.getElementById('login-btn');
+    loginBtn.disabled = false;
+    loginBtn.innerText = 'Login';
+
+    // Switch to login panel
+    switchPanel('login-panel');
+  });
+}
+  function switchPanel(panelId) {
+    document.querySelectorAll('.container').forEach(el => {
+      el.classList.remove('active');
+      el.style.display = 'none';
+    });
+    const panel = document.getElementById(panelId);
+    panel.classList.add('active');
+    panel.style.display = 'flex';
+    document.getElementById('message').innerText = '';
+  }
+  function showInlineWarning(questionElement, message) {
+    let existing = questionElement.querySelector('.inline-warning');
+    if (!existing) {
+      const warning = document.createElement('div');
+      warning.className = 'inline-warning';
+      warning.textContent = message;
+      warning.style.color = '#b30000';
+      warning.style.fontSize = '14px';
+      warning.style.marginTop = '8px';
+      questionElement.appendChild(warning);
+    }
+  }
+
+  function clearInlineWarnings(formId) {
+    const form = document.getElementById(formId);
+    form.querySelectorAll('.inline-warning').forEach(el => el.remove());
+  }
+  const answerKey = {
+    q1: "To record and verify transactions in a decentralized network",
+    q2: "Bitcoin",
+    q3: "Intermediaries",
+    q4: "Reliability and Immutability",
+    q5: "Power is distributed among multiple participants",
+    q6: "Proof of Work (PoW)",
+    q7: "Through cryptographic hashing and decentralized storage",
+    q8: "Private blockchains require permission to access, while public blockchains do not",
+    q9: "Transaction history is openly accessible to network participants",
+    q10: "By enabling secure tracking of product origins and movement",
+    q11: "The ability of blockchains to interact and share data with each other",
+    q12: "Hybrid blockchain",
+    q13: "To execute agreements automatically without intermediaries",
+    q14: "Excessive energy usage due to mining",
+    q15: "To ensure that participants agree on the state of the distributed ledger"
+  };
+
+  document.getElementById("quiz-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  clearInlineWarnings("quiz-form");
+
+  const form = e.target;
+  const answers = {};
+  let hasEmpty = false;
+
+  // Count correct answers per group
+  let count_1 = 0; // Questions 1-5 (easy)
+  let count_3 = 0; // Questions 6-10 (intermediate)
+  let count_5 = 0; // Questions 11-15 (hard)
+
+  for (let i = 1; i <= 15; i++) {
+    const key = `q${i}`;
+    const selected = form.querySelector(`input[name="${key}"]:checked`);
+    const questionDiv = form.querySelector(`input[name="${key}"]`).closest('.question');
+
+    if (selected) {
+      answers[key] = selected.value === answerKey[key] ? 1 : 0;
+      // Count correct answers per group
+      if (answers[key] === 1) {
+        if (i >= 1 && i <= 5) count_1++;
+        else if (i >= 6 && i <= 10) count_3++;
+        else if (i >= 11 && i <= 15) count_5++;
+      }
+    } else {
+      hasEmpty = true;
+      showInlineWarning(questionDiv, "⚠️ Please select an answer.");
+    }
+  }
+
+  if (hasEmpty) {
+    alert("⚠️ You have unanswered Pre-Test questions.");
+    return;
+  }
+
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      // Save raw answers to Firestore as before
+      await db.collection("responses").doc(user.uid).set({ answers }, { merge: true });
+
+      // Send counts to backend API for knowledge level computation and storage
+      await fetch("http://localhost:5000/predict_knowledge", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          user_id: user.uid,
+          count_1: count_1,
+          count_3: count_3,
+          count_5: count_5
+        })
+      })
+      .then(res => res.json())
+      .then(result => {
+        // Optionally show the result to the user
+        alert(`✅ Pre-Test submitted!\nKnowledge Level: ${result.knowledge_level}\nPoints: ${result.total_points}`);
+      })
+      .catch(err => {
+        console.error("Error calling backend:", err);
+        alert("❌ Failed to compute knowledge level.");
+      });
+
+      const pretestBtn = document.getElementById("btn-pretest");
+        pretestBtn.disabled = true;
+        pretestBtn.title = "Pre-Test already submitted";
+        pretestBtn.style.backgroundColor = "#ccc";
+        pretestBtn.style.cursor = "not-allowed";
+
+        // ✅ Enable Post-Test if both pre and vark are done
+        await checkAndEnablePostTest(user.uid);
+
+        if (confirm("✅ Pre-Test submitted! Proceed to VARK?")) toggleVark();
+      } catch (error) {
+        console.error(error);
+        alert("❌ Failed to save Pre-Test.");
+      }
+  }
+});
+
+document.getElementById("vark-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  clearInlineWarnings("vark-form");
+
+  const form = e.target;
+  const answers = {};
+  let hasEmpty = false;
+
+  for (let i = 1; i <= 15; i++) {
+    const key = `v${i}`;
+    const checkboxes = form.querySelectorAll(`input[name="${key}"]:checked`);
+    const questionDiv = form.querySelector(`input[name="${key}"]`).closest('.question');
+
+    if (checkboxes.length > 0) {
+      answers[key] = Array.from(checkboxes).map(c => c.value);
+    } else {
+      hasEmpty = true;
+      showInlineWarning(questionDiv, "⚠️ Please select at least one option.");
+    }
+  }
+
+  if (hasEmpty) {
+    alert("⚠️ You have unanswered VARK questions.");
+    return;
+  }
+
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      await db.collection("vark_responses").doc(user.uid).set({ answers }, { merge: true });
+
+      // Count V, A, R, K
+      let countV = 0, countA = 0, countR = 0, countK = 0;
+      Object.values(answers).flat().forEach(letter => {
+        if (letter === "V") countV++;
+        if (letter === "A") countA++;
+        if (letter === "R") countR++;
+        if (letter === "K") countK++;
+      });
+
+      // Call both RF and BN APIs for prediction (do not show result to user)
+      try {
+        await fetch("http://localhost:5001/predict_vark", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: user.uid,
+            Count_V: countV,
+            Count_A: countA,
+            Count_R: countR,
+            Count_K: countK
+          })
+        });
+      } catch (err) {}
+      try {
+        await fetch("http://localhost:5002/predict_vark_bn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: user.uid,
+            Count_V: countV,
+            Count_A: countA,
+            Count_R: countR,
+            Count_K: countK
+          })
+        });
+      } catch (err) {}
+
+      // Get user's name for the message
+      let username = "";
+      try {
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        if (userDoc.exists) {
+          const data = userDoc.data();
+          username = data.nickname || `${data.firstName || ""} ${data.lastName || ""}`.trim();
+        }
+      } catch (e) {
+        username = "";
+      }
+
+      // Only show Good Job message (no prediction, no data)
+      alert(`Good Job${username ? ', ' + username : ''}!`);
+
+      const varkBtn = document.getElementById("btn-vark");
+        varkBtn.disabled = true;
+        varkBtn.title = "VARK already submitted";
+        varkBtn.style.backgroundColor = "#ccc";
+        varkBtn.style.cursor = "not-allowed";
+
+        // ✅ Enable Post-Test if both pre and vark are done
+        await checkAndEnablePostTest(user.uid);
+
+        if (confirm("✅ VARK submitted! Proceed to Post-Test?")) togglePostTest();
+      } catch (error) {
+        console.error(error);
+        alert("❌ Failed to save VARK.");
+      }
+  }
+});
+
+</script>
+<script>
+  document.getElementById("post-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    clearInlineWarnings("post-form");
+  
+    const form = e.target;
+    const answers = {};
+    let hasEmpty = false;
+  
+    for (let i = 1; i <= 15; i++) {
+      const key = `q${i}`;
+      const selected = form.querySelector(`input[name="${key}"]:checked`);
+      const questionDiv = form.querySelector(`input[name="${key}"]`).closest('.question');
+  
+      if (selected) {
+        answers[key] = selected.value === answerKey[key] ? 1 : 0;
+      } else {
+        hasEmpty = true;
+        showInlineWarning(questionDiv, "⚠️ Please select an answer.");
+      }
+    }
+  
+    if (hasEmpty) {
+    alert("⚠️ You have unanswered Post-Test questions.");
+    return;
+  }
+
+  
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await db.collection("post_responses").doc(user.uid).set({ answers }, { merge: true });
+        // Disable the Post-Test button after successful submission
+        const posttestBtn = document.getElementById("btn-posttest");
+        posttestBtn.disabled = true;
+        posttestBtn.title = "Post-Test already submitted";
+        posttestBtn.style.backgroundColor = "#ccc";
+        posttestBtn.style.cursor = "not-allowed";
+
+        lockForm("post-form"); // Lock the form visually
+        alert("✅ Post-Test submitted! Thank you for completing the assessment.");
+        toggleUserInfo(); // Optional: redirect back to user info
+      } catch (error) {
+        console.error(error);
+        alert("❌ Failed to save Post-Test.");
+      }
+    }
+  });
+  </script>
+<script>
+document.getElementById('user-info-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("No user is logged in.");
+    return;
+  }
+
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const nickname = document.getElementById('nickname').value.trim();
+  const learningPreference = document.querySelector('input[name="learningPreference"]:checked')?.value;
+
+  if (!firstName || !lastName || !nickname || !learningPreference) {
+    alert("Please complete all fields.");
+    return;
+  }
+
+  try {
+    await db.collection("users").doc(user.uid).set({
+      firstName,
+      lastName,
+      nickname,
+      learningPreference,
+      email: user.email
+    }, { merge: true });
+
+    document.getElementById('acc-name').textContent = `${firstName} ${lastName}`;
+    document.getElementById('info-warning').style.display = "none";
+    document.getElementById('btn-pretest').disabled = false;
+    document.getElementById('btn-vark').disabled = false;
+
+    // ✅ NEW: Lock User Info form immediately
+    lockUserInfoForm();
+
+    // ✅ NEW: Lock Post-Test until pre + vark done
+    const posttestBtn = document.getElementById('btn-posttest');
+    posttestBtn.disabled = true;
+    posttestBtn.title = "Please complete Pre-Test and VARK first";
+    posttestBtn.style.backgroundColor = "#ccc";
+    posttestBtn.style.cursor = "not-allowed";
+
+    alert("✅ User information saved successfully!");
+  } catch (error) {
+    console.error("Error saving user info:", error);
+    alert("❌ Failed to save user info.");
+  }
+});
+
+async function checkAndEnablePostTest(userId) {
+  const pre = await db.collection("responses").doc(userId).get();
+  const vark = await db.collection("vark_responses").doc(userId).get();
+
+  if (pre.exists && pre.data().answers && vark.exists && vark.data().answers) {
+    const posttestBtn = document.getElementById("btn-posttest");
+    posttestBtn.disabled = false;
+    posttestBtn.title = "";
+    posttestBtn.style.backgroundColor = "";
+    posttestBtn.style.cursor = "";
+  }
+}
+
+</script>
+  
+
+</body>
+</html>
+
